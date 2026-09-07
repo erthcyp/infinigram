@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What We Add</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#141A17; --bg:#FBFCFB; --card:#FFFFFF; --rule:#D3DAD4; --muted:#6B776F;
+  --acc:#0E6B57; --acc-bg:#DFEDE8; --acc-ink:#0A5344; --warn:#8A5A00; --warn-bg:#FBF0DA;
+  --bad:#9B3A22; --bad-bg:#F7E4DE;
+  --shadow:0 1px 2px rgba(20,26,23,.05), 0 8px 24px rgba(20,26,23,.05);
+  --sans:"Anuphan","IBM Plex Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8EDE9; --bg:#0F1412; --card:#161C19; --rule:#2A332E; --muted:#93A099;
+    --acc:#5FBFA5; --acc-bg:#14332B; --acc-ink:#8FD8C2; --warn:#E0B25E; --warn-bg:#332A16;
+    --bad:#E08A6B; --bad-bg:#33201A;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E8EDE9; --bg:#0F1412; --card:#161C19; --rule:#2A332E; --muted:#93A099;
+  --acc:#5FBFA5; --acc-bg:#14332B; --acc-ink:#8FD8C2; --warn:#E0B25E; --warn-bg:#332A16;
+  --bad:#E08A6B; --bad-bg:#33201A;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:0 24px 96px}
+
+.masthead{padding:76px 0 36px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--acc);font-weight:600;margin-bottom:18px}
+h1{font-size:clamp(2rem,5.2vw,3.1rem);line-height:1.1;margin:0 0 20px;font-weight:700;letter-spacing:-.024em}
+.standfirst{font-size:1.1rem;color:var(--muted);max-width:58ch;margin:0 0 24px;line-height:1.6}
+.byline{font-family:var(--mono);font-size:.74rem;color:var(--muted);line-height:1.7}
+.byline a{color:var(--acc)}
+
+nav.toc{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--rule);
+  padding:12px 0;margin-bottom:56px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+nav.toc a{font-family:var(--mono);font-size:.73rem;color:var(--muted);text-decoration:none;
+  padding:5px 10px;border:1px solid var(--rule);border-radius:999px;margin-right:6px;display:inline-block}
+nav.toc a:hover{color:var(--acc);border-color:var(--acc)}
+nav.toc a.pg{color:var(--acc);border-color:var(--acc);background:var(--acc-bg);font-weight:600}
+
+section{margin:0 0 72px;scroll-margin-top:70px}
+h2{font-size:1.55rem;font-weight:700;letter-spacing:-.015em;margin:0 0 20px;line-height:1.25}
+h2 .sn{font-family:var(--mono);font-size:.72rem;color:var(--acc);font-weight:600;
+  display:block;margin-bottom:9px;letter-spacing:.1em}
+h3{font-size:1.06rem;font-weight:600;margin:32px 0 10px}
+p{margin:0 0 16px;max-width:68ch}
+p.first{font-size:1.04rem}
+a{color:var(--acc)}
+strong{font-weight:600}
+em{font-style:normal;font-weight:600;color:var(--acc)}
+
+.tscroll{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--card);
+  box-shadow:var(--shadow);margin:20px 0}
+table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:520px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{font-family:var(--mono);font-size:.67rem;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;background:var(--acc-bg);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.lead{font-weight:600}
+td.num,th.num{text-align:right;font-family:var(--mono);font-size:.84rem;white-space:nowrap}
+tr.hi td{background:var(--acc-bg)}
+tr.flip td{background:var(--bad-bg)}
+.mono{font-family:var(--mono);font-size:.85em}
+
+pre{background:var(--acc-bg);border:1px solid var(--rule);border-radius:8px;padding:15px 17px;
+  overflow-x:auto;font-family:var(--mono);font-size:.77rem;line-height:1.62;margin:16px 0}
+code{font-family:var(--mono);font-size:.87em;background:var(--acc-bg);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0;font-size:1em}
+
+.box{border:1px solid var(--rule);background:var(--card);border-radius:12px;padding:20px 22px;
+  margin:22px 0;box-shadow:var(--shadow)}
+.box .mk{font-family:var(--mono);font-size:.67rem;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:600;margin-bottom:10px;color:var(--acc)}
+.box p:last-child{margin-bottom:0}
+.box.warn{border-color:var(--warn);background:var(--warn-bg)}
+.box.warn .mk{color:var(--warn)}
+.box.bad{border-color:var(--bad);background:var(--bad-bg)}
+.box.bad .mk{color:var(--bad)}
+.box.key{border-color:var(--acc);background:var(--acc-bg)}
+
+.quote{border-left:3px solid var(--acc);background:var(--acc-bg);padding:15px 18px;
+  border-radius:0 8px 8px 0;margin:18px 0;font-size:.95rem;max-width:68ch}
+.quote .src{display:block;font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:9px}
+
+ul.tight{margin:0 0 16px;padding-left:20px;max-width:68ch}
+ul.tight li{margin-bottom:9px}
+ul.tight li:last-child{margin-bottom:0}
+
+footer{border-top:1px solid var(--rule);padding-top:26px;font-size:.84rem;color:var(--muted);line-height:1.7}
+@media (max-width:640px){
+  .wrap{padding:0 16px 64px}
+  .masthead{padding:48px 0 30px}
+  .box{padding:16px 17px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">HalluTrace, positioning note</div>
+  <h1>What we add</h1>
+  <p class="standfirst">
+    HALoGEN asked our question first. So the only interesting version of "what is the value of this project" is a
+    precise account of what it did, what it could not do, and which of those limits we actually remove.
+  </p>
+  <p class="byline">
+    Earth, September 2026<br>
+    Companion to <a href="index.html">How I investigated infini-gram</a>
+  </p>
+</header>
+
+<nav class="toc">
+  <a class="pg" href="index.html">The investigation</a>
+  <a href="#question">The question</a>
+  <a href="#halogen">What HALoGEN did</a>
+  <a href="#tool">The tool gap</a>
+  <a href="#proxy">The proxy gap</a>
+  <a href="#seven">Seven differences</a>
+  <a href="#notclaim">What we do not claim</a>
+  <a href="#descendants">Did anyone follow</a>
+  <a href="#cite">Work we must cite</a>
+  <a href="#paragraph">In one paragraph</a>
+</nav>
+
+<!-- QUESTION -->
+<section id="question">
+  <h2><span class="sn">The question</span>Why this needs answering carefully</h2>
+  <p class="first">
+    Every review of this project will begin the same way. HALoGEN already classifies hallucinations by their
+    relationship to pretraining data. It is from a strong group, it is well cited, and its Type A, B and C scheme is
+    exactly the distinction we are built around. So what is left for us?
+  </p>
+  <p>
+    A vague answer loses the room. "We go deeper" or "we do it at scale" invites the follow up question we would then
+    fail. The answer has to be specific enough that someone can check it.
+  </p>
+  <p>
+    What follows is that answer. It rests on reading HALoGEN closely enough to see which tool it used, which corpora it
+    actually searched, and what those choices made impossible.
+  </p>
+</section>
+
+<!-- HALOGEN -->
+<section id="halogen">
+  <h2><span class="sn">Prior work</span>What HALoGEN actually did</h2>
+  <p>
+    HALoGEN is a broad hallucination benchmark. 10,923 prompts across nine domains, roughly 150,000 generations from
+    fourteen models, every generation broken into atomic facts and each fact checked automatically against an
+    authoritative source. That part is excellent and we borrow from it directly.
+  </p>
+  <p>Then, separately, it does the thing nobody else does. It asks where the wrong fact came from.</p>
+
+  <pre><code>Type A   the correct fact was in the pretraining data, recall failed
+Type B   the erroneous fact was itself in the pretraining data
+Type C   neither was there, the model over generalised or invented</code></pre>
+
+  <p>
+    Its findings are real and useful. Up to 72 percent of hallucinated code package names appear verbatim in
+    pretraining corpora. Wrong senator alma maters occur even though the correct one is present. Impossible historical
+    meetings have almost no corpus basis at all.
+  </p>
+
+  <div class="box warn">
+    <div class="mk">Three constraints on what that amounts to</div>
+    <p>
+      <strong>It is an analysis, not a measurement.</strong> The A, B and C attribution is applied to selected domains
+      as a discussion section. It is not a label carried by every instance. Download HALoGEN today and you get
+      hallucination scores, not provenance labels.
+    </p>
+    <p>
+      <strong>Presence is recorded as a boolean.</strong> Whether a fact appeared, not how often. The information that
+      distinguishes appearing three times from appearing twelve thousand times is discarded.
+    </p>
+    <p>
+      <strong>Attribution was only possible where the data is public.</strong> Fourteen models were evaluated. Most do
+      not publish their corpus.
+    </p>
+  </div>
+
+  <p>The paper says the third point itself, in its limitations:</p>
+
+  <div class="quote">
+    "many of the LLMs examined in this work do not release their data sources, limiting the accuracy of our
+    attributions. This points toward the need for open language models which enable transparent inspection of
+    pretraining data."
+    <span class="src">HALoGEN, limitations</span>
+  </div>
+
+  <p>
+    That sentence is the strongest argument for our scope that exists, and we did not write it. HALoGEN says the fix is
+    open language models. We take every open language model that qualifies, which happens to be all five in the world
+    whose corpus is both published and indexed.
+  </p>
+
+  <p>And its future work names the two things it could not reach:</p>
+
+  <div class="quote">
+    "Future work would construct causal frameworks, to study counterfactual questions about the inclusion of specific
+    datapoints and their effect on specific model hallucinations... while we search for facts as they are stated in
+    model responses, these facts could be present implicitly in pretraining corpora."
+    <span class="src">HALoGEN, future work</span>
+  </div>
+</section>
+
+<!-- TOOL -->
+<section id="tool">
+  <h2><span class="sn">Difference one</span>The tool gap, and why it is not cosmetic</h2>
+  <p>
+    HALoGEN searched training data with <strong>WIMBD</strong>. We use <strong>infini-gram</strong>. Both come from the
+    same lab, and it would be easy to treat this as a version upgrade. It is not.
+  </p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th></th><th>WIMBD</th><th>infini-gram</th></tr></thead>
+      <tbody>
+        <tr><td class="lead">Searches</td><td>documents, through Elasticsearch</td><td>token sequences, through a suffix array</td></tr>
+        <tr><td class="lead">Answers</td><td>does it appear, and in how many documents</td><td>how many times does it occur, counting repeats within a document</td></tr>
+        <tr class="hi"><td class="lead">Large n-gram counts</td><td><strong>hash compressed and lossy</strong></td><td><strong>exact</strong></td></tr>
+        <tr><td class="lead">Length of phrase</td><td>bounded</td><td>unbounded</td></tr>
+        <tr><td class="lead">Latency</td><td>not comparable, different architecture</td><td>10 to 50 ms, measured</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box key">
+    <div class="mk">The consequence</div>
+    <p>
+      Relating hallucination rate to how often a fact appeared requires <strong>occurrence counts</strong>. WIMBD
+      returns document frequency, and its large n-gram counting is approximate by design.
+    </p>
+    <p>
+      So the frequency curve, which is the measurement that opens the entire training process axis for us, was
+      <strong>not available to HALoGEN with the tool it used</strong>. This is not us having a newer toy. It is a
+      capability that did not exist in their setup.
+    </p>
+  </div>
+
+  <p>
+    The cost of the newer tool is a problem WIMBD never had, because it matched text rather than tokens. Token boundary
+    contamination is real, it is structural, and we had to design a procedure for it from scratch since no prior work
+    had needed one. That investigation is
+    <a href="index.html">written up separately</a>, and the procedure is itself a contribution.
+  </p>
+</section>
+
+<!-- PROXY -->
+<section id="proxy">
+  <h2><span class="sn">Difference two</span>The proxy gap, now with a number on it</h2>
+  <p>Which corpus each model's hallucinations were checked against:</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Model family</th><th>HALoGEN searched</th><th>Is that the real corpus</th></tr></thead>
+      <tbody>
+        <tr><td class="lead">OLMo</td><td class="mono">Dolma</td><td>yes</td></tr>
+        <tr class="flip"><td class="lead">Llama</td><td class="mono">C4</td><td><strong>no, a substitute</strong></td></tr>
+        <tr class="flip"><td class="lead">GPT-3.5, GPT-4</td><td class="mono">OpenWebText</td><td><strong>no, a substitute</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    They had no choice. Llama and the GPT models do not publish their training data. The paper is upfront that this
+    limits the attribution. What nobody has ever done is measure how much.
+  </p>
+  <p>
+    We ran four pairs against Dolma and then against C4, treating C4 the way HALoGEN had to treat it: as a stand in.
+  </p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Pair</th><th>Real corpus label</th><th>Substitute label</th></tr></thead>
+      <tbody>
+        <tr><td class="lead mono">pd.read_json</td><td>correct present only</td><td>correct present only</td></tr>
+        <tr class="flip"><td class="lead mono">sklearn.cross_validation</td><td><strong>both present</strong></td><td><strong>correct present only</strong></td></tr>
+        <tr><td class="lead mono">pandas.tools.plotting</td><td>both present</td><td>both present</td></tr>
+        <tr><td class="lead mono">np.float</td><td>both present</td><td>both present</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    One label in four changed. <code>from sklearn.cross_validation import</code>, correct before scikit-learn 0.18 and
+    an error since, occurs 1,968 times in Dolma and <strong>zero times</strong> in C4. Against the substitute we would
+    report that the corpus was clean, when the corpus the model actually read is not.
+  </p>
+  <p>The ratio moves even where the label survives, and in both directions, so no constant correction is available.</p>
+
+<pre><code>pandas.plotting    0.161 becomes 0.333     roughly doubled
+np.float           0.274 becomes 0.125     roughly halved</code></pre>
+
+  <div class="box warn">
+    <div class="mk">Say this at the strength it deserves and no more</div>
+    <p>
+      Four pairs, all Python API names, which is where C4 is weakest since it is filtered web text with almost no
+      source code. For claims about people or papers the gap would likely be narrower. This is a preview, not the
+      result. The full control runs on a sample balanced across all three tasks and belongs in the paper.
+    </p>
+    <p>
+      What it does establish is that <strong>the substitution is not free and the cost is measurable</strong>. Nobody
+      has put a number on it before, and we are in a position to.
+    </p>
+  </div>
+</section>
+
+<!-- SEVEN -->
+<section id="seven">
+  <h2><span class="sn">The summary</span>Seven differences, stated so they can be checked</h2>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th></th><th>HALoGEN</th><th>HalluTrace</th><th>What it buys</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="lead">Search tool</td>
+          <td>WIMBD, document level, lossy on large n-grams</td>
+          <td>infini-gram, exact occurrence counts, unbounded length</td>
+          <td>makes the frequency measurement possible at all</td>
+        </tr>
+        <tr class="hi">
+          <td class="lead">Corpus</td>
+          <td>real for OLMo, substitutes for Llama and GPT</td>
+          <td>real for all five, zero substitutes</td>
+          <td>removes a known source of error, and measures its size</td>
+        </tr>
+        <tr>
+          <td class="lead">Scope</td>
+          <td>selected domains, roughly 100 to 500 instances, as analysis</td>
+          <td>every instance, as the measurement</td>
+          <td>turns anecdotes into proportions</td>
+        </tr>
+        <tr>
+          <td class="lead">What is recorded</td>
+          <td>presence, as a boolean</td>
+          <td>occurrence counts, as integers</td>
+          <td>opens the exposure signal and the training process axis</td>
+        </tr>
+        <tr>
+          <td class="lead">Sampling</td>
+          <td>one generation per prompt</td>
+          <td>five samples per prompt</td>
+          <td>opens the inference axis, separates weights from decoding</td>
+        </tr>
+        <tr class="hi">
+          <td class="lead">The two axes</td>
+          <td>has failure modes, has A B C, never crosses them</td>
+          <td>crosses them, from disjoint evidence</td>
+          <td>the principal result</td>
+        </tr>
+        <tr>
+          <td class="lead">Honesty about limits</td>
+          <td>no undetermined category</td>
+          <td>undetermined is a reported outcome, with confidence tiers</td>
+          <td>the share of hallucinations we can place becomes a finding</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    An eighth, which we did not plan and only exists because of the tool change: <strong>a procedure for counting
+    n-grams correctly under byte pair encoding</strong>. In one measured case the naive count was inflated by a factor
+    of 9.4 and the intervention point flipped from one end of our framework to the other. No prior work describes a fix,
+    because no prior work in this area used a token level index.
+  </p>
+</section>
+
+<!-- NOT CLAIM -->
+<section id="notclaim">
+  <h2><span class="sn">Boundaries</span>What we do not claim</h2>
+  <p>
+    Overstating here is the fastest way to lose credibility on everything above, so these belong in the same document
+    as the contributions.
+  </p>
+  <ul class="tight">
+    <li>
+      <strong>We do not establish cause.</strong> Proving that removing a document removes an error requires retraining
+      the model, which is beyond any budget relevant to this study. We locate where an error is addressable. That is a
+      weaker claim than causation and a stronger one than anything else on offer.
+    </li>
+    <li>
+      <strong>We are smaller than HALoGEN.</strong> Five models against fourteen, three tasks against nine. We go
+      narrow and deep on the one question they left open, and we should say so rather than imply breadth we do not have.
+    </li>
+    <li>
+      <strong>We build no new verifiers.</strong> The detection stage follows their approach with their sources.
+    </li>
+    <li>
+      <strong>Absence is an upper bound.</strong> Exact string search cannot find a fact stated in different words, so
+      every "not in the data" label carries that caveat and is reported as a bound.
+    </li>
+    <li>
+      <strong>Our index coverage is not complete.</strong> 98.7 percent of tokens for OLMo 2, 93 percent for DCLM. The
+      fraction is attached to every figure we report.
+    </li>
+  </ul>
+</section>
+
+<!-- DESCENDANTS -->
+<section id="descendants">
+  <h2><span class="sn">The gap check</span>Did anyone already follow up</h2>
+  <p>
+    Our positioning depends on a negative claim, and negative claims are the ones reviewers check first. So it was
+    worth searching properly rather than assuming.
+  </p>
+  <p>
+    HALoGEN appeared in January 2025 and is roughly twenty months old. Searching for papers that adopt its A, B and C
+    taxonomy or perform pretraining corpus attribution of hallucinations turned up around a dozen citing papers, all of
+    which cite it in passing in related work or in a comparison table. <strong>None adopts the taxonomy. None reuses
+    its prompts or verifiers. None does corpus attribution at scale.</strong>
+  </p>
+  <p>
+    The nearest thing is a paper that explicitly notes HALoGEN "distinguishes hallucinations based on whether incorrect
+    facts were present during pretraining" and then cites it in order to argue against it, proposing its own framework
+    instead.
+  </p>
+
+  <div class="box bad">
+    <div class="mk">Verify this before it goes in the paper</div>
+    <p>
+      The citation APIs at Semantic Scholar and OpenAlex were unreachable from the environment where this search ran,
+      so the count above comes from full text search coverage rather than from a citation list. It is a floor, not a
+      census.
+    </p>
+    <p>
+      Open the Semantic Scholar page for arXiv:2501.08292 by hand and read the citing papers before writing
+      "no descendants" anywhere. It takes five minutes and it is the single easiest thing for a reviewer to check.
+    </p>
+  </div>
+</section>
+
+<!-- CITE -->
+<section id="cite">
+  <h2><span class="sn">Adjacent work</span>Two papers we have to cite</h2>
+
+  <h3>Lexical training data coverage, arXiv:2511.17946</h3>
+  <p>
+    The closest work by method. It builds suffix arrays over RedPajama's 1.3 trillion tokens and measures how training
+    data coverage relates to hallucination, on <strong>RedPajama-INCITE 3B and 7B</strong>, which is one of our own five
+    subject models.
+  </p>
+  <p>
+    It does something different with it. Coverage becomes a <em>feature for detecting</em> whether an answer is likely
+    hallucinated, not a label for where the error came from. It does not search for the correct form, so it cannot
+    distinguish a recall failure from a knowledge gap. It does not cite HALoGEN and does not use A, B or C.
+  </p>
+  <p>
+    Two of its numbers matter to us regardless. Occurrence features alone reach only about 0.6 AUROC as a detector. And
+    21 percent of 4-grams and 44 percent of 5-grams in NQ-Open never appear in the training data at all, which is
+    advance warning that our "not in the data" category will be larger than intuition suggests.
+  </p>
+  <p><strong>Cite it and distinguish it explicitly, or a reviewer will ask whether we are duplicating it.</strong></p>
+
+  <h3>Scalable influence and fact tracing, arXiv:2410.17413</h3>
+  <p>
+    Influence functions on an 8B model over 160 billion pretraining tokens. This is the real instrument for causal
+    attribution, the thing we said is out of reach, done by a group that could reach it.
+  </p>
+  <p>
+    Its central finding is the one we should quote against ourselves: <strong>causal influence and factual attribution
+    do not agree</strong>. Retrieval finds the documents that contain a fact, while influence functions point at a
+    different set of documents that actually drove the output.
+  </p>
+
+  <div class="box key">
+    <div class="mk">Use this in our limitations, not against us</div>
+    <p>
+      Raise it ourselves. Work that measures causal influence directly shows it diverges from finding where a fact is
+      stated, which is why we call our output an intervention point rather than a cause. Citing the paper that could
+      undermine a careless version of our claim is what makes the careful version credible.
+    </p>
+  </div>
+</section>
+
+<!-- PARAGRAPH -->
+<section id="paragraph">
+  <h2><span class="sn">The short version</span>In one paragraph</h2>
+
+  <div class="box key">
+    <p>
+      HALoGEN asked the right question and answered it with the tool available at the time. WIMBD tells you whether a
+      string appears and in how many documents; it cannot give exact occurrence counts at arbitrary length, so the
+      frequency signal was closed to them, and for two of three model families they had to search a substitute corpus.
+      infini-gram removes both constraints. We take the question they opened, give it the instrument it needed, apply
+      it to every instance rather than a case study, keep the counts as numbers rather than as yes and no, add repeated
+      sampling so training and inference can be separated, and cross the result against the failure mode to produce a
+      table nobody has published. We also measure what their substitution cost, since that is now something we can
+      measure and they could not.
+    </p>
+  </div>
+
+  <p>
+    If someone gets only one sentence, make it the second half of the first line. <em>The frequency signal was closed
+    to them.</em> Everything else follows from that.
+  </p>
+</section>
+
+<footer>
+  Companion to <a href="index.html">How I investigated infini-gram</a>, which contains the measurements this note
+  refers to.<br><br>
+  HALoGEN: <a href="https://arxiv.org/abs/2501.08292">arXiv:2501.08292</a>.
+  WIMBD: <a href="https://arxiv.org/abs/2310.20707">arXiv:2310.20707</a>.
+  infini-gram: <a href="https://arxiv.org/abs/2401.17377">arXiv:2401.17377</a>.
+  Lexical coverage: <a href="https://arxiv.org/abs/2511.17946">arXiv:2511.17946</a>.
+  Influence and fact tracing: <a href="https://arxiv.org/abs/2410.17413">arXiv:2410.17413</a>.<br><br>
+  Quotations are verbatim from HALoGEN. The descendant search is incomplete and flagged as such in that section.
+</footer>
+
+</div>
+</body>
+</html>
