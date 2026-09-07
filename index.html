@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investigating infini-gram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#141A17; --bg:#FBFCFB; --card:#FFFFFF; --rule:#D3DAD4; --muted:#6B776F;
+  --acc:#0E6B57; --acc-bg:#DFEDE8; --acc-ink:#0A5344; --warn:#8A5A00; --warn-bg:#FBF0DA;
+  --bad:#9B3A22; --bad-bg:#F7E4DE;
+  --shadow:0 1px 2px rgba(20,26,23,.05), 0 8px 24px rgba(20,26,23,.05);
+  --sans:"Anuphan","IBM Plex Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8EDE9; --bg:#0F1412; --card:#161C19; --rule:#2A332E; --muted:#93A099;
+    --acc:#5FBFA5; --acc-bg:#14332B; --acc-ink:#8FD8C2; --warn:#E0B25E; --warn-bg:#332A16;
+    --bad:#E08A6B; --bad-bg:#33201A;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E8EDE9; --bg:#0F1412; --card:#161C19; --rule:#2A332E; --muted:#93A099;
+  --acc:#5FBFA5; --acc-bg:#14332B; --acc-ink:#8FD8C2; --warn:#E0B25E; --warn-bg:#332A16;
+  --bad:#E08A6B; --bad-bg:#33201A;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:0 24px 96px}
+
+.masthead{padding:76px 0 36px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--acc);font-weight:600;margin-bottom:18px}
+h1{font-size:clamp(2rem,5.2vw,3.1rem);line-height:1.1;margin:0 0 20px;font-weight:700;letter-spacing:-.024em}
+.standfirst{font-size:1.1rem;color:var(--muted);max-width:58ch;margin:0 0 24px;line-height:1.6}
+.byline{font-family:var(--mono);font-size:.74rem;color:var(--muted);line-height:1.7}
+
+nav.toc{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--rule);
+  padding:12px 0;margin-bottom:56px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+nav.toc a{font-family:var(--mono);font-size:.73rem;color:var(--muted);text-decoration:none;
+  padding:5px 10px;border:1px solid var(--rule);border-radius:999px;margin-right:6px;display:inline-block}
+nav.toc a:hover{color:var(--acc);border-color:var(--acc)}
+
+section{margin:0 0 72px;scroll-margin-top:70px}
+h2{font-size:1.55rem;font-weight:700;letter-spacing:-.015em;margin:0 0 20px;line-height:1.25}
+h2 .sn{font-family:var(--mono);font-size:.72rem;color:var(--acc);font-weight:600;
+  display:block;margin-bottom:9px;letter-spacing:.1em}
+h3{font-size:1.06rem;font-weight:600;margin:32px 0 10px}
+p{margin:0 0 16px;max-width:68ch}
+p.first{font-size:1.04rem}
+a{color:var(--acc)}
+strong{font-weight:600}
+em{font-style:normal;font-weight:600;color:var(--acc)}
+
+.tscroll{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--card);
+  box-shadow:var(--shadow);margin:20px 0}
+table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:500px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{font-family:var(--mono);font-size:.67rem;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;background:var(--acc-bg);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.lead{font-weight:600}
+td.num,th.num{text-align:right;font-family:var(--mono);font-size:.84rem;white-space:nowrap}
+tr.hi td{background:var(--acc-bg)}
+tr.flip td{background:var(--bad-bg)}
+.mono{font-family:var(--mono);font-size:.85em}
+
+pre{background:var(--acc-bg);border:1px solid var(--rule);border-radius:8px;padding:15px 17px;
+  overflow-x:auto;font-family:var(--mono);font-size:.77rem;line-height:1.62;margin:16px 0}
+code{font-family:var(--mono);font-size:.87em;background:var(--acc-bg);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0;font-size:1em}
+
+.box{border:1px solid var(--rule);background:var(--card);border-radius:12px;padding:20px 22px;
+  margin:22px 0;box-shadow:var(--shadow)}
+.box .mk{font-family:var(--mono);font-size:.67rem;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:600;margin-bottom:10px;color:var(--acc)}
+.box p:last-child{margin-bottom:0}
+.box.warn{border-color:var(--warn);background:var(--warn-bg)}
+.box.warn .mk{color:var(--warn)}
+.box.bad{border-color:var(--bad);background:var(--bad-bg)}
+.box.bad .mk{color:var(--bad)}
+.box.key{border-color:var(--acc);background:var(--acc-bg)}
+
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin:24px 0}
+.kpi div{border-left:3px solid var(--acc);padding-left:13px}
+.kpi .v{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;line-height:1.2;font-family:var(--mono)}
+.kpi .k{font-size:.78rem;color:var(--muted);margin-top:3px;line-height:1.45}
+
+ul.tight{margin:0 0 16px;padding-left:20px;max-width:68ch}
+ul.tight li{margin-bottom:9px}
+ul.tight li:last-child{margin-bottom:0}
+
+footer{border-top:1px solid var(--rule);padding-top:26px;font-size:.84rem;color:var(--muted);line-height:1.7}
+@media (max-width:640px){
+  .wrap{padding:0 16px 64px}
+  .masthead{padding:48px 0 30px}
+  .box{padding:16px 17px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">HalluTrace, investigation log</div>
+  <h1>How I investigated infini-gram</h1>
+  <p class="standfirst">
+    I was asked to find out whether the tool our whole project depends on actually does what we assumed. It mostly
+    does. The part where it does not turned out to matter more than anything else we had planned.
+  </p>
+  <p class="byline">
+    Earth, September 2026<br>
+    Measured against Dolma v1.7 and C4-train through the public infini-gram API
+  </p>
+</header>
+
+<nav class="toc">
+  <a href="#assignment">The assignment</a>
+  <a href="#browser">Ten minutes</a>
+  <a href="#crack">The first crack</a>
+  <a href="#anchor">A dead end</a>
+  <a href="#ntd">A different question</a>
+  <a href="#catch">The catch</a>
+  <a href="#method">The procedure</a>
+  <a href="#validate">Testing it</a>
+  <a href="#float">The case that mattered</a>
+  <a href="#c4">While I was there</a>
+  <a href="#believe">What I believe now</a>
+  <a href="#open">Unsettled</a>
+  <a href="#run">Run it</a>
+</nav>
+
+<!-- ASSIGNMENT -->
+<section id="assignment">
+  <h2><span class="sn">The assignment</span>What I was actually asked</h2>
+  <p class="first">
+    HalluTrace decides where a hallucination came from by searching the model's own pretraining corpus twice. Once for
+    the erroneous thing the model said, once for the correct thing it should have said. Two numbers come back, and
+    those two numbers decide everything.
+  </p>
+
+  <pre><code>c_true  = how often the correct form appears
+c_false = how often the erroneous form appears
+
+correct present, erroneous absent    the data was fine, the model forgot
+erroneous present, correct absent    the mistake was in the data
+neither present                      nothing was ever there
+both present                         the corpus disagreed with itself</code></pre>
+
+  <p>
+    From those labels we derive the intervention point, the remedy we recommend, and the cross tabulation that is the
+    paper's headline. <strong>The entire project sits on two integers.</strong>
+  </p>
+  <p>
+    So my job was narrow and important. Before anyone writes a pipeline, find out what those integers actually mean.
+    When you ask <a href="https://infini-gram.io/">infini-gram</a> how many times a string occurs in a corpus, what is
+    it really counting?
+  </p>
+  <p>
+    I expected to spend an afternoon confirming that it counts what it says it counts, and to report back that we were
+    fine. That is not what happened.
+  </p>
+</section>
+
+<!-- BROWSER -->
+<section id="browser">
+  <h2><span class="sn">Step one</span>Ten minutes in a browser</h2>
+  <p>
+    There is no tutorial for this tool. No video, no course, no blog post walking through it. There is a paper, an API
+    document, and a <a href="https://huggingface.co/spaces/liujch1998/infini-gram">web interface</a> where you pick a
+    corpus, type a string, and press a button. I started there, because it costs nothing.
+  </p>
+  <p>
+    First I needed to understand what I was querying. infini-gram takes a corpus, concatenates it into one long array of
+    tokens, and builds a <strong>suffix array</strong> over it: every starting position, sorted by the text that
+    follows. Because the list is sorted, all the places beginning with a given phrase sit next to each other in one
+    block. Counting is two binary searches and a subtraction.
+  </p>
+  <p>
+    That design has a consequence I did not appreciate until later. Nothing is precomputed per phrase length, so the
+    phrase can be any length at all. And the index is built over <em>tokens</em>, not over characters and not over
+    words.
+  </p>
+
+  <div class="kpi">
+    <div><div class="v">2.6 T</div><div class="k">tokens in Dolma v1.7, the corpus behind OLMo 1.7</div></div>
+    <div><div class="v">10 to 50 ms</div><div class="k">every query I ran, without exception</div></div>
+    <div><div class="v">free</div><div class="k">public API, no key, no stated rate limit</div></div>
+  </div>
+
+  <p>I picked Dolma, typed the first thing on my list, and got a number.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Query</th><th class="num">Count</th><th class="num">Latency</th></tr></thead>
+      <tbody>
+        <tr><td class="lead mono">pd.read_json</td><td class="num">35,040</td><td class="num">48.4 ms</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Fine. Now the erroneous form. A model in our code task writes <code>pd.read_jsonl</code>, which does not exist in
+    pandas. If that string appears in the corpus, the mistake was learned rather than invented.
+  </p>
+</section>
+
+<!-- CRACK -->
+<section id="crack">
+  <h2><span class="sn">Step two</span>The first crack</h2>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Query</th><th class="num">Count</th><th>Tokenized</th></tr></thead>
+      <tbody>
+        <tr><td class="lead mono">pd.read_json</td><td class="num">35,040</td><td class="mono">▁pd . read _ json</td></tr>
+        <tr><td class="lead mono">pd.read_jsonl</td><td class="num">0</td><td class="mono">▁pd . read _ json l</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Zero. Clean result, easy label, and I nearly moved on. Then I looked at the second column, which the interface
+    shows underneath the answer and which I had been ignoring.
+  </p>
+
+<pre><code>pd.read_json    [10518, 29889, 949, 29918, 3126]
+pd.read_jsonl   [10518, 29889, 949, 29918, 3126, 29880]
+                 ^^^^^^ identical prefix ^^^^^^   plus one</code></pre>
+
+  <p>
+    The erroneous form is not a different sequence. It is the correct form with a single token stuck on the end. And
+    infini-gram counts occurrences of a token sequence, wherever they occur.
+  </p>
+
+  <div class="box bad">
+    <div class="mk">What that means</div>
+    <p>
+      Every occurrence of <code>pd.read_jsonl</code> in the corpus would be counted inside the number for
+      <code>pd.read_json</code>. Silently. The 35,040 would include them, and nothing in the response would say so.
+    </p>
+    <p>
+      In this particular case nothing is lost, because the longer form has count zero. But that is luck, not safety.
+      The mechanism is structural, and it applies to every pair where the wrong form extends the right one.
+    </p>
+  </div>
+
+  <p>
+    I sat with the failure direction for a while, because it is the worst possible one. Contamination inflates
+    <code>c_true</code>. Inflating <code>c_true</code> pushes a claim out of <em>the mistake was in the data</em> and
+    into <em>the data was fine</em>. Our system would tell a team to stop looking at their corpus at exactly the moment
+    the corpus is the problem.
+  </p>
+</section>
+
+<!-- ANCHOR -->
+<section id="anchor">
+  <h2><span class="sn">Step three</span>The obvious fix, and why it collapsed</h2>
+  <p>
+    The fix seemed easy. Anchor the query. Append a character that cannot be part of a function name, so nothing longer
+    can hide inside it. For a Python call, an opening parenthesis.
+  </p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Query</th><th class="num">Count</th><th class="num">Share</th></tr></thead>
+      <tbody>
+        <tr><td class="lead mono">pd.read_json</td><td class="num">35,040</td><td class="num">100%</td></tr>
+        <tr class="hi"><td class="lead mono">pd.read_json(</td><td class="num">21,432</td><td class="num">61.2%</td></tr>
+        <tr><td class="lead">unaccounted for</td><td class="num">13,608</td><td class="num">38.8%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Anchoring threw away thirty nine percent. And I already knew none of it was the longer identifier, because that has
+    count zero. So thirteen thousand legitimate occurrences had vanished and I did not know where they went.
+  </p>
+  <p>
+    My first guess was that they were other kinds of boundary. A space, a newline, a comma. That guess was wrong, and
+    finding out why was the most useful thing I did all week.
+  </p>
+</section>
+
+<!-- NTD -->
+<section id="ntd">
+  <h2><span class="sn">Step four</span>Asking a different question</h2>
+  <p>
+    Instead of guessing what follows the string, I asked. The interface has a tab that computes the distribution over
+    the next token: given this phrase, what comes after it in the corpus, and how often.
+  </p>
+  <p>Eighteen distinct answers, for 35,040 occurrences.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Next token</th><th class="num">Count</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td class="lead mono">(</td><td class="num">21,475</td><td>a bare parenthesis</td></tr>
+        <tr class="flip"><td class="lead mono">('</td><td class="num">8,621</td><td>parenthesis and quote, as one token</td></tr>
+        <tr class="flip"><td class="lead mono">("</td><td class="num">3,471</td><td>the same with a double quote</td></tr>
+        <tr class="flip"><td class="lead mono">('/</td><td class="num">512</td><td>three characters, still one token</td></tr>
+        <tr><td class="lead mono">▁(</td><td class="num">512</td><td>space then parenthesis</td></tr>
+        <tr><td class="lead mono">("/</td><td class="num">165</td><td></td></tr>
+        <tr><td class="lead mono">(".</td><td class="num">64</td><td></td></tr>
+        <tr><td class="lead mono">▁with</td><td class="num">64</td><td>prose, not code</td></tr>
+        <tr><td class="lead mono">▁kw</td><td class="num">64</td><td></td></tr>
+        <tr><td class="lead mono">▁has</td><td class="num">17</td><td>prose</td></tr>
+        <tr><td class="lead mono">(*</td><td class="num">16</td><td></td></tr>
+        <tr><td class="lead mono">(),</td><td class="num">11</td><td></td></tr>
+        <tr><td class="lead mono">▁function</td><td class="num">11</td><td>prose</td></tr>
+        <tr><td class="lead mono">,</td><td class="num">10</td><td></td></tr>
+        <tr><td class="lead mono">▁("</td><td class="num">10</td><td></td></tr>
+        <tr><td class="lead mono">▁can</td><td class="num">10</td><td>prose</td></tr>
+        <tr><td class="lead mono">▁should</td><td class="num">6</td><td>prose</td></tr>
+        <tr><td class="lead mono">▁converts</td><td class="num">1</td><td>prose</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Look at the three rows in red. They are all opening parentheses.</p>
+
+  <div class="box key">
+    <div class="mk">This is the whole finding</div>
+    <p>
+      Byte pair encoding merged the parenthesis with whatever followed it. <code>('</code> is one token.
+      <code>("</code> is one token. <code>('/</code> is one token.
+    </p>
+    <p>
+      My anchored query asked for the token <code>(</code> on its own. So it never matched
+      <code>pd.read_json('data.json')</code>, because in that text the tokenizer never produced a bare parenthesis. It
+      produced <code>('</code>.
+    </p>
+    <p>
+      The thirty nine percent I lost was not a different kind of boundary. It was <strong>the same parenthesis</strong>,
+      tokenized differently because of the character after it.
+    </p>
+  </div>
+
+  <p>
+    Which kills the approach entirely. Under byte pair encoding, text that looks identical to a person tokenizes
+    differently depending on its neighbours, and there is no way to enumerate in advance what to append. Anchoring on a
+    character is not a conservative fix. It is a silent undercount whose size you cannot predict.
+  </p>
+  <p>
+    The distribution, though, does not require me to guess anything. It reports what is actually there. That felt like
+    the answer, so I checked whether I could trust it.
+  </p>
+</section>
+
+<!-- CATCH -->
+<section id="catch">
+  <h2><span class="sn">Step five</span>The catch</h2>
+  <p>
+    The response carries a flag called <code>approx</code>. For plain counts it comes back false. For the next token
+    distribution it comes back <strong>true</strong>, and I wanted to know how much that mattered.
+  </p>
+  <p>I had two numbers I could check it against, because I had already measured them directly.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Continuation</th><th class="num">Distribution</th><th class="num">Exact count</th><th class="num">Error</th></tr></thead>
+      <tbody>
+        <tr><td class="lead mono">pd.read_json + (</td><td class="num">21,475</td><td class="num">21,432</td><td class="num">0.2%</td></tr>
+        <tr class="flip"><td class="lead mono">pd.read_ + json</td><td class="num">32,768</td><td class="num">35,040</td><td class="num">6.5%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The error grows with volume. And then I noticed the numbers themselves.</p>
+
+<pre><code>32,768 = 2^15        24,576 = 3 x 2^13
+16,384 = 2^14         6,144 = 3 x 2^11
+ 4,096 = 2^12         2,048 = 2^11</code></pre>
+
+  <p>
+    Powers of two, over and over. The service samples continuations and scales the sample back up, so the individual
+    figures are quantized estimates. The total is exact, which is why all eighteen rows sum to precisely 35,040 while
+    single rows are off by thousands.
+  </p>
+
+  <div class="box">
+    <div class="mk">What I took from that</div>
+    <p>
+      Use the distribution to learn <strong>which</strong> tokens follow. Never use it to learn <strong>how many</strong>.
+      The identity of a token is reliable even when the number attached to it is not, and identity is the only thing I
+      need from it.
+    </p>
+  </div>
+</section>
+
+<!-- METHOD -->
+<section id="method">
+  <h2><span class="sn">Step six</span>The procedure</h2>
+  <p>
+    Two query types, each used for the one thing it is good at. What comes out has no approximation left in it
+    anywhere.
+  </p>
+
+  <ul class="tight">
+    <li><strong>Count the string.</strong> Exact, but may include longer strings that extend it.</li>
+    <li><strong>Ask what follows.</strong> Returns every token that appears next. Ignore the numbers.</li>
+    <li><strong>Classify each one.</strong> A token continues the identifier when its first character is a letter, a digit or an underscore, with no leading space marker. Everything else is a boundary.</li>
+    <li><strong>Count each continuation exactly.</strong> One count query per continuing token. Exact again.</li>
+    <li><strong>Subtract.</strong> Raw minus the sum of those exact counts.</li>
+  </ul>
+
+<pre><code>def continues(token):
+    if not token:
+        return False
+    first = token[0]
+    if first in ("▁", " "):          # sentencepiece space marker
+        return False
+    return first.isalnum() or first == "_"
+
+
+def clean_count(s, index):
+    raw = count(s, index)                        # exact
+    if raw == 0:
+        return 0
+    nxt = next_token_distribution(s, index)      # identities only
+    bad = [t for t in nxt if continues(t)]
+    return raw - sum(count(s + t, index) for t in bad)   # exact</code></pre>
+
+  <p>
+    Most strings have nothing continuing them, so the normal case costs two queries instead of one. Our projected
+    ninety thousand queries becomes roughly one hundred and eighty thousand, which at the latencies I measured is under
+    three hours in total. The schedule does not move.
+  </p>
+</section>
+
+<!-- VALIDATE -->
+<section id="validate">
+  <h2><span class="sn">Step seven</span>Testing it in both directions</h2>
+  <p>
+    A detector that never fires looks exactly like a working one. So I ran it on a string I was confident was clean,
+    and on a string I was confident was pure contamination.
+  </p>
+
+  <h3>A complete identifier</h3>
+  <p><code>pd.read_json</code>. Eighteen continuations, all boundaries.</p>
+<pre><code>boundary total   35,040
+continues total       0
+clean vs raw     35,040 vs 35,040     no correction needed</code></pre>
+
+  <h3>A deliberate fragment</h3>
+  <p>
+    <code>pd.read_</code> is never a complete name. It is the prefix of every pandas reader that exists. Fourteen
+    continuations, all continuing.
+  </p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Token</th><th class="num">Count</th><th>Token</th><th class="num">Count</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">csv</td><td class="num">1,568,182</td><td class="mono">html</td><td class="num">24,576</td></tr>
+        <tr><td class="mono">excel</td><td class="num">115,194</td><td class="mono">par</td><td class="num">16,384</td></tr>
+        <tr><td class="mono">sql</td><td class="num">66,809</td><td class="mono">h</td><td class="num">14,225</td></tr>
+        <tr><td class="mono">pick</td><td class="num">44,284</td><td class="mono">fw</td><td class="num">7,182</td></tr>
+        <tr><td class="mono">table</td><td class="num">36,095</td><td class="mono">st</td><td class="num">6,144</td></tr>
+        <tr><td class="mono">json</td><td class="num">32,768</td><td class="mono">s</td><td class="num">4,096</td></tr>
+        <tr><td class="mono">fe</td><td class="num">3,437</td><td class="mono">xml</td><td class="num">2,048</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+<pre><code>boundary total            0
+continues total   1,941,424
+clean vs raw              0 vs 1,941,424     entirely spurious</code></pre>
+
+  <p>
+    Zero is the right answer. <code>pd.read_</code> never occurs as a complete unit anywhere in Dolma. The rule fires
+    when it should and stays quiet when it should, which is as much as I can ask of it.
+  </p>
+</section>
+
+<!-- FLOAT -->
+<section id="float">
+  <h2><span class="sn">Step eight</span>The case that would have changed our answer</h2>
+  <p class="first">
+    Everything up to here establishes a mechanism. This is the one where I watched it change a conclusion we would
+    otherwise have published.
+  </p>
+  <p>
+    <code>np.float</code> was a deprecated alias, removed in NumPy 1.24. Writing it today is an error, and enormous
+    amounts of older code still contain it. The correct form is <code>np.float64</code>. Both are in the corpus. This
+    looked like a clean example of an error that lives in the training data.
+  </p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th></th><th class="num">Raw</th><th class="num">Subtracted</th><th class="num">Clean</th></tr></thead>
+      <tbody>
+        <tr><td class="lead mono">np.float64</td><td class="num">120,567</td><td class="num">1,497</td><td class="num">119,070</td></tr>
+        <tr class="flip"><td class="lead mono">np.float</td><td class="num">423,920</td><td class="num">378,978</td><td class="num">44,942</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+<pre><code>what came out of np.float
+
+np.float3     238,129     np.float32 and relatives
+np.float6     120,568     np.float64, the correct form itself
+np.float1      14,211     np.float16
+np.float_       2,934
+np.float_(      1,646
+np.float_)        796
+np.float_,        694
+              =========
+              378,978     89.4 percent of the raw number</code></pre>
+
+  <div class="box bad">
+    <div class="mk">Read the second line again</div>
+    <p>
+      <code>np.float6</code>, removed at 120,568, is <code>np.float64</code>. The string I was counting as evidence of
+      an error was mostly counting the correct answer instead. The two sides of the comparison were eating each other.
+    </p>
+  </div>
+
+  <h3>What the two versions produce</h3>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th></th><th class="num">c_true</th><th class="num">c_false</th><th class="num">ratio</th><th>Where it points</th></tr></thead>
+      <tbody>
+        <tr class="flip"><td class="lead">Raw</td><td class="num">120,567</td><td class="num">423,920</td><td class="num">0.779</td><td><strong>pretraining data, high confidence</strong></td></tr>
+        <tr class="hi"><td class="lead">Clean</td><td class="num">119,070</td><td class="num">44,942</td><td class="num">0.274</td><td><strong>not the data content</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box key">
+    <div class="mk">The consequence, stated plainly</div>
+    <p>
+      Our decision rule turns on whether that ratio reaches 0.5. Raw counts put it at 0.779, which means clean the
+      corpus. Clean counts put it at 0.274, which means the corpus is not at fault and the problem lies in training or
+      in decoding.
+    </p>
+    <p>
+      Different team, different budget, opposite recommendation. The answer flipped from one end of our framework to
+      the other, purely because of how tokens were counted.
+    </p>
+  </div>
+</section>
+
+<!-- C4 -->
+<section id="c4">
+  <h2><span class="sn">Step nine</span>One more question while I was in there</h2>
+  <p>
+    A separate question, unrelated to tokenization, that I could answer cheaply since the machinery was already
+    running.
+  </p>
+  <p>
+    Work that traces hallucinations back to training data usually cannot search the real corpus, because most models do
+    not publish theirs. HALoGEN, the closest prior work to ours, searched Dolma for OLMo but substituted C4 for Llama
+    and OpenWebText for the GPT models, and named this in its limitations. Nobody has measured what the substitution
+    costs. I ran the same four pairs against C4 to find out.
+  </p>
+
+  <div class="tscroll">
+    <table>
+      <thead>
+        <tr><th>Pair</th><th class="num">Dolma true</th><th class="num">Dolma false</th><th>Dolma label</th><th class="num">C4 true</th><th class="num">C4 false</th><th>C4 label</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="lead mono">read_json</td><td class="num">35,040</td><td class="num">0</td><td>correct only</td><td class="num">4</td><td class="num">0</td><td>correct only</td></tr>
+        <tr class="flip"><td class="lead mono">sklearn</td><td class="num">16,809</td><td class="num">1,968</td><td><strong>both present</strong></td><td class="num">4</td><td class="num">0</td><td><strong>correct only</strong></td></tr>
+        <tr><td class="lead mono">pandas.plotting</td><td class="num">10,904</td><td class="num">2,087</td><td>both present</td><td class="num">14</td><td class="num">7</td><td>both present</td></tr>
+        <tr><td class="lead mono">np.float</td><td class="num">119,070</td><td class="num">44,942</td><td>both present</td><td class="num">28</td><td class="num">4</td><td>both present</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    One label in four changed. <code>from sklearn.cross_validation import</code>, correct before scikit-learn 0.18 and
+    wrong since, appears 1,968 times in Dolma and <strong>zero times</strong> in C4. Searching the substitute erases the
+    evidence entirely, and we would report a clean corpus while the real one is not clean.
+  </p>
+  <p>The ratio moves even where the label survives, and it moves in both directions, so no constant correction exists.</p>
+
+<pre><code>pandas.plotting    0.161 becomes 0.333     roughly doubled
+np.float           0.274 becomes 0.125     roughly halved</code></pre>
+
+  <p>And the magnitudes collapse far more than the size difference explains.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Query</th><th class="num">Dolma</th><th class="num">C4</th><th class="num">Times smaller</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">pd.read_json</td><td class="num">35,040</td><td class="num">4</td><td class="num">8,760</td></tr>
+        <tr><td class="mono">np.float64</td><td class="num">119,070</td><td class="num">28</td><td class="num">4,252</td></tr>
+        <tr><td class="mono">sklearn import</td><td class="num">16,809</td><td class="num">4</td><td class="num">4,202</td></tr>
+        <tr><td class="mono">pandas.plotting</td><td class="num">10,904</td><td class="num">14</td><td class="num">779</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    C4 is thirteen times smaller than Dolma by tokens, but these counts fall by between 779 and 8,760 times. That gap
+    is not about size. C4 is filtered web text with almost no source code in it, while Dolma contains code repositories
+    and developer forums. At counts of 4 and 7, one document would change the answer.
+  </p>
+
+  <div class="box warn">
+    <div class="mk">How far I am willing to push this</div>
+    <p>
+      Not very. All four pairs are Python API names, which is precisely where C4 is weakest. For claims about people or
+      papers the gap would probably be narrower. Four items is a preview, not a result. The real control needs a sample
+      balanced across all three of our tasks, and that belongs in the paper rather than here.
+    </p>
+  </div>
+</section>
+
+<!-- BELIEVE -->
+<section id="believe">
+  <h2><span class="sn">Conclusions</span>What I believe now</h2>
+  <ul class="tight">
+    <li><strong>Token boundary contamination is real and structural</strong>, not a corner case. It follows from how the index is built.</li>
+    <li><strong>Anchoring on a character is unsound</strong> under byte pair encoding. It lost 39 percent in the one case I measured, and the size of the loss is unpredictable.</li>
+    <li><strong>The next token distribution is approximate</strong>, by up to 6.5 percent, with a quantization signature visible in the raw numbers.</li>
+    <li><strong>Identify with the distribution, measure with exact counts.</strong> The result carries no approximation.</li>
+    <li><strong>The rule behaves correctly at both extremes</strong>, zero and one hundred percent contamination.</li>
+    <li><strong>Throughput is not a risk.</strong> Every query I ran returned in 10 to 50 milliseconds.</li>
+    <li><strong>The correction changes conclusions</strong>, not just numbers. One case in four moved across our decision threshold.</li>
+  </ul>
+
+  <div class="box key">
+    <div class="mk">Why this is worth a section in the paper</div>
+    <p>
+      HALoGEN searched training data with WIMBD, which matches documents and text rather than tokens, so it never met
+      this problem and had no reason to describe a solution. Later work using infini-gram has not applied it to
+      hallucination provenance. There is no precedent for us to follow here, which means the procedure above is
+      something we contribute rather than a footnote about tooling.
+    </p>
+  </div>
+</section>
+
+<!-- OPEN -->
+<section id="open">
+  <h2><span class="sn">Honest gaps</span>What I could not settle</h2>
+  <ul class="tight">
+    <li>
+      <strong>How often cleaning changes a label.</strong> One in four here, on four items, all code. This has to become
+      a measured figure across all three tasks.
+    </li>
+    <li>
+      <strong>Whether the rule holds outside code.</strong> Person names, paper titles and venue names tokenize
+      differently from function names. Untested.
+    </li>
+    <li>
+      <strong>Case and whitespace.</strong> The API is case sensitive, and a leading space changes the tokenization
+      completely. Our query forms must be fixed and identical across all five corpora before generation starts, and I
+      have not written that specification yet.
+    </li>
+    <li>
+      <strong>The browser truncates.</strong> The web interface shows the top ten continuations only. Read the full
+      response through the API, or a rare continuation will hide in the tail where nobody looks.
+    </li>
+    <li>
+      <strong>OLMo 3 indexes now exist</strong> at 6.1T tokens, which I did not expect to find. But each query against
+      them takes 12 to 15 seconds and they do not support boolean queries, roughly three hundred times slower than what
+      we use. Future work, not this paper.
+    </li>
+  </ul>
+</section>
+
+<!-- RUN -->
+<section id="run">
+  <h2><span class="sn">Reproduce</span>Run it yourself</h2>
+  <p>Standard library only. No installation, no key. Ten minutes end to end.</p>
+
+<pre><code>import json, urllib.request, time
+
+URL = "https://api.infini-gram.io/"
+
+def call(index, **body):
+    body["index"] = index
+    req = urllib.request.Request(
+        URL, data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"})
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.loads(r.read().decode())
+        except Exception:
+            if attempt == 3:
+                raise
+            time.sleep(1.5 * (attempt + 1))
+
+def continues(tok):
+    if not tok:
+        return False
+    ch = tok[0]
+    if ch in ("▁", " "):
+        return False
+    return ch.isalnum() or ch == "_"
+
+def clean_count(s, index):
+    raw = call(index, query_type="count", query=s).get("count", 0)
+    if raw == 0:
+        return 0, 0, []
+    d = call(index, query_type="ntd", query=s)
+    bad = [v.get("token") for v in d.get("result_by_token_id", {}).values()
+           if isinstance(v, dict) and continues(v.get("token"))]
+    subtracted = sum(
+        call(index, query_type="count", query=s + t).get("count", 0)
+        for t in bad)
+    return raw - subtracted, raw, bad
+
+def label(t, f):
+    if t &gt; 0 and f == 0:  return "CORRECT_IN_DATA"
+    if t == 0 and f &gt; 0:  return "WRONG_IN_DATA"
+    if t == 0 and f == 0: return "NOT_IN_DATA"
+    return "MIXED"
+
+INDEX = "v4_dolma-v1_7_llama"
+PAIRS = [
+    ("pd.read_json",                        "pd.read_jsonl"),
+    ("from sklearn.model_selection import", "from sklearn.cross_validation import"),
+    ("pandas.plotting",                     "pandas.tools.plotting"),
+    ("np.float64",                          "np.float"),
+]
+
+for good, bad in PAIRS:
+    ct, _, _ = clean_count(good, INDEX)
+    cf, _, _ = clean_count(bad, INDEX)
+    r = cf / (ct + cf) if (ct + cf) else 0
+    print(good, ct, "|", bad, cf, "|", label(ct, cf), round(r, 4))</code></pre>
+
+  <p>
+    Swap <code>INDEX</code> for <code>v4_c4train_llama</code>, <code>v4_dclm-baseline_llama</code>,
+    <code>v4_piletrain_llama</code> or <code>v4_rpj_llama_s4</code> to repeat the corpus comparison.
+  </p>
+  <p>
+    On macOS with zsh, do not paste this into the prompt. History expansion will choke on the exclamation mark in a
+    shebang, and the shell will try to run each Python line as a command. Write it to a file with a quoted heredoc
+    first, then run the file. That cost me ten minutes and it was the only part of the week that was my own fault.
+  </p>
+</section>
+
+<footer>
+  Every figure on this page was measured through the public infini-gram API in September 2026, against Dolma v1.7
+  (2.6T tokens) and C4-train (200B tokens). The comparison of raw against clean ratios in step eight is my own
+  arithmetic, derived from the measured counts.<br><br>
+  infini-gram: <a href="https://arxiv.org/abs/2401.17377">arXiv:2401.17377</a>,
+  <a href="https://infini-gram.io/">infini-gram.io</a>,
+  <a href="https://huggingface.co/spaces/liujch1998/infini-gram">web interface</a>.
+  HALoGEN: <a href="https://arxiv.org/abs/2501.08292">arXiv:2501.08292</a>.
+  WIMBD: <a href="https://arxiv.org/abs/2310.20707">arXiv:2310.20707</a>.
+</footer>
+
+</div>
+</body>
+</html>
